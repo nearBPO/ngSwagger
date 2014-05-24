@@ -1,0 +1,8 @@
+<div class="model-description">
+	<span class="strong">{{model.id}} {</span>
+	<div ng-repeat="(name, p) in model.properties">
+		<span class="propName">{{name}}</span>
+		<span ng-bind-html="p | apiPropDef:$last"></span>
+	</div>
+	<span class="strong">}</span>
+</div>

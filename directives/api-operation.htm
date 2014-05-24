@@ -1,0 +1,119 @@
+<div class="panel" ng-class="panelClass">
+	<div class="panel-heading" style="padding: 0">
+		<h4 class="panel-title" ng-click="toggleOpen()">
+			<span class="http-method">
+				<span class="{{operation.method | lowercase}}">{{operation.method}}</span>
+			</span>
+			<span class="path">{{api.path}}</span>
+			<span class="summary">{{operation.summary}}</span>
+		</h4>
+	</div>
+	<div class="panel-collapse" collapse="!isOpen">
+		<form name="form" ng-submit="test()">
+		<div class="panel-body">
+			<div ng-if="operation.notes!=''">
+				<h4>Implementation Notes</h4>
+				{{operation.notes}}
+			</div>
+			<div ng-if="operation.type!='void'">
+				<h4>Response Class</h4>
+				<api-model ng-if="operation.type!='array'" model="models[operation.type]"></api-model>
+				<api-model ng-if="operation.type=='array'" model="models[operation.items['$ref']]"></api-model>
+				<div style="margin-top: 10px">
+					Response Content Type
+					<div style="width: 200px"><select ng-model="request.responseType" ng-options="type for type in produces"
+						class="form-control"></select></div>
+				</div>
+			</div>
+			<div ng-if="operation.parameters.length>0">
+				<h4>Parameters</h4>
+				<table class="table">
+					<thead>
+						<tr>
+							<th style="width: 100px">Param Name</th>
+							<th style="width: 100px">Param Type</th>
+							<th>Value</th>
+							<th>Description</th>
+							<th>Data Type</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="param in operation.parameters | filter: {paramType: '!body'}">
+							<td ng-class="{required: param.required}">{{param.name}}</td>
+							<td>{{param.paramType}}</td>
+							<td><input type="text" ng-model="request.data[param.paramType][param.name]" ng-required="param.required"
+									class="form-control"/></td>
+							<td>{{param.description}}</td>
+							<td>{{param.type}}</td>
+						</tr>
+						<tr ng-repeat="param in operation.parameters | filter: {paramType: 'body'}">
+							<td ng-class="{required: param.required}">{{param.name}}</td>
+							<td>{{param.paramType}}</td>
+							<td ng-if="param.type.toLowerCase()!='file' && param.type.toLowerCase()!='string'">
+								<textarea class="form-control" ng-model="request.data.body[param.name]"
+									ng-required="param.required" style="height: 100px"></textarea>
+							</td>
+							<td ng-if="param.type.toLowerCase()=='file'">
+								<input type="file" class="form-control" ng-required="param.required"
+									file-model="request.data.body[param.name]"/>
+							</td>
+							<td ng-if="param.type.toLowerCase()=='string'">
+								<input type="string" class="form-control" ng-required="param.required"
+									ng-model="request.data.body[param.name]"/>
+							</td>
+							<td>{{param.description}}</td>
+							<td ng-if="models[param.type]===undefined">{{param.type}}</td>
+							<td ng-if="models[param.type]!==undefined">
+								<api-model ng-repeat="(name, model) in getModels(param.type)" model="model"></api-model>
+							</td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<td colspan="2">Request Content Type</td>
+							<td>
+								<select ng-model="request.type" ng-options="type for type in consumes"
+									class="form-control"></select>
+							</td>
+							<td colspan="2">&nbsp;</td>
+						</tr>
+					</tfoot>
+				</table>
+			</div>
+			<div ng-if="operation.responseMessages.length>0">
+				<h4>HTTP Status Codes</h4>
+				<table class="table">
+					<thead>
+						<tr>
+							<th>HTTP Status Code</th>
+							<th>Reason</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="message in operation.responseMessages">
+							<td>{{message.code}}</td>
+							<td>{{message.message}}</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div style="margin-top: 10px">
+				<button class="btn" ng-disabled="form.$invalid" ng-class="btnClass">Try it out!</button>
+			</div>
+			<div ng-if="response!=null">
+				<h4>Request URL</h4>
+				<div class="block"><pre>{{response.url}}</pre></div>
+				<h4>Response Body</h4>
+				<div class="block">
+					<pre ng-if="response.headers['content-type']!='application/json'">{{response.body}}</pre>
+					<pre ng-if="response.headers['content-type']=='application/json'">{{response.body | json}}</pre>
+				</div>
+				<h4>Response Code</h4>
+				<div class="block"><pre>{{response.code}}</pre></div>
+				<h4>Response Headers</h4>
+				<div class="block"><pre>{{response.headers | json}}</pre></div>
+			</div>
+		</div>
+		</form>
+	</div>
+</div>
